@@ -1,2 +1,2 @@
 # tensorflow_ML
-Andrew Ng's Machine Learning course with tensorflow
+Homework in Andrew Ng's Machine Learning course with tensorflow.
