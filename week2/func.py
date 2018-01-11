@@ -9,23 +9,27 @@ def warmUpExercise():
 
 def plotData(X, y):
     plt.figure()
-    plt.plot(X, y, "rx")
+    plt.plot(X, y, "rx", markersize=10)
     
 def computeCost(X, y, theta):
     # TODO reuse this function for numpy array and tensor?
     m = y.size 
+    y = y.reshape(-1, 1)
+    theta = theta.reshape(-1, 1)
     return np.sum(np.power((X @ theta - y), 2)) / (2*m)
 
 def gradientDescent(X, y, theta, alpha, n_epochs):
+    y = y.reshape(-1, 1)
+    theta = theta.reshape(-1, 1)
     J_history = np.array([])
     m = y.size
-    X = tf.constant(X, dtype=tf.float32, name="X")
-    y = tf.constant(y, dtype=tf.float32, name="y")
+    Xc = tf.constant(X, dtype=tf.float32, name="X")
+    yc = tf.constant(y, dtype=tf.float32, name="y")
     theta = tf.Variable(theta, dtype=tf.float32, name="theta")
-    y_pred = tf.matmul(X, theta, name="predictions")
-    error = y_pred - y
+    y_pred = tf.matmul(Xc, theta, name="predictions")
+    error = y_pred - yc
     mse = tf.reduce_mean(tf.square(error), name="mse") # divided by 2 in Matlab version
-    gradients = 1/m * tf.matmul(tf.transpose(X), error)
+    gradients = 1/m * tf.matmul(tf.transpose(Xc), error)
     training_op = tf.assign(theta, theta - alpha * gradients)
 
     init = tf.global_variables_initializer()

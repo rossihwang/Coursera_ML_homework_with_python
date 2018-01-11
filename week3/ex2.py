@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import numpy as np 
 import matplotlib.pyplot as plt 
-from func import plotData, costFunction, fminunc, plotDecisionBoundary, gradient, sigmoid, predict
+from func import plotData, costFunction, scipy_fminunc, plotDecisionBoundary, gradient, sigmoid, predict
 import scipy.optimize as opt
 
 
@@ -53,7 +53,8 @@ def main():
     print("Expected gradients (approx):\n 0.043\n 2.566\n 2.647")
 
     ## Part 3: Optimizing using fminunc
-    theta, cost = fminunc(costFunction, initial_theta, args=(X, y))
+    options = {"maxiter": 400}
+    theta, cost = scipy_fminunc(costFunction, initial_theta, (X, y), options)
 
     # Print theta to screen
     print("Cost at theta found by fminunc: {}".format(cost))

@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt 
 from mpl_toolkits.mplot3d import Axes3D
-from functions import warmUpExercise, plotData, computeCost, gradientDescent
+from func import warmUpExercise, plotData, computeCost, gradientDescent
 
 def main():
     ## Part 1: Basic Function
@@ -27,7 +27,6 @@ def main():
 
     ## Part 3: Cost and Gradient descent
     X = np.hstack([np.ones((m, 1)), data[:, 0].reshape(-1, 1)])
-    y = y.reshape(-1, 1) # IMPORTANT
     theta = np.zeros((2, 1))
     
     # Some gradient descent settings
@@ -41,11 +40,11 @@ def main():
     print("Expected cost value (approx) 32.07")
 
     # further testing of the cost function
-    J = computeCost(X, y, np.array([-1, 2]).reshape(-1, 1))
+    J = computeCost(X, y, np.array([-1, 2]))
     print("\nWith theta = [[-1], [2]]\nCost computed = {}".format(J))
     print("Expected cost value (approx) 54.24")
 
-    print("Program paused. Press enter to continue.")
+    # print("Program paused. Press enter to continue.")
     # input()
 
     print("\nRunning Gradient Descent ...")
@@ -56,7 +55,7 @@ def main():
     print("Theta found by gradient descent:", end='')
     print("{}".format(theta))
     print("Expected theta values (approx)", end='')
-    print(" -3.6303\n 1.1664\n")
+    print(" -3.6303 1.1664\n")
 
     # Plot the linear fit
     plt.plot(X[:, 1], X @ theta, '-')
@@ -68,7 +67,7 @@ def main():
     predict2 = np.array([1, 7.0]) @ theta 
     print("For population = 70,000, we predict a profit of {}".format(predict2*10000))
 
-    print("Program paused. Press enter to continue.")
+    # print("Program paused. Press enter to continue.")
     # input()
 
     ## Part 4: Visualizing J(theta_0, theta_1)
@@ -77,15 +76,6 @@ def main():
     # Grid over which we will calculate J
     theta0_vals = np.linspace(-10, 10, 100)
     theta1_vals = np.linspace(-1, 4, 100)
-
-    # initialize J_vals to matrix of 0's
-    # J_vals = np.zeros(theta0_vals.size, theta1_vals.size)
-
-    # Fill out J_vals
-    # for i in theta0_vals.size:
-    #     for j in theta1_vals.size:
-    #         t = np.hstack([theta0_vals[i], theta1_vals[j]])
-    #         J_vals[i, j] = computeCost(X, y, t)
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
@@ -101,7 +91,7 @@ def main():
     # Contour plot
     plt.figure()
     plt.contour(theta0_vals, theta1_vals, J_vals)
-    plt.plot(theta[0], theta[1], "rx")
+    plt.plot(theta[0], theta[1], "rx", markersize=10, linewidth=2)
     plt.show()
 
 if __name__ == "__main__":

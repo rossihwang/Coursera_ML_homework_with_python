@@ -2,7 +2,7 @@
 import numpy as np 
 import tensorflow as tf
 import matplotlib.pyplot as plt 
-from functions import featureNormalize, gradientDescent, normalEqn
+from func import featureNormalize, gradientDescent, normalEqn
 
 def main():
     ## Part 1: Feature Normalization
@@ -11,14 +11,13 @@ def main():
     # Load data
     data = np.loadtxt("./ex1data2.txt", delimiter=',')
     X = data[:, :2]
-    y = data[:, 2].reshape(-1, 1)
+    y = data[:, 2]
     m = y.size
 
-    print(X, y)
     # Print out some data points
     print("First 10 examples from the dataset: ")
     #TODO How to implement a print with format for array like that in Matlab?
-    for i, j in zip(X[:10, :], y[:10, :]):
+    for i, j in zip(X[:10, :], y.reshape(-1, 1)[:10, :]):
         print(" x = [{:.0f} {:.0f}], y = {:.0f}".format(i[0], i[1], j[0]))
 
     print("Program paused. Press enter to continue. ")
@@ -61,7 +60,7 @@ def main():
 
     print("Predicted price of a 1650 sq-ft, 3 br house (using gradient descent):\n{}".format(price))
     print("Program paused. Press enter to continue.")
-    input()
+    # input()
 
     ## Part 3: Normal Equations
     # Load Data
