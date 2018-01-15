@@ -2,6 +2,7 @@
 import numpy as np 
 import matplotlib.pyplot as plt 
 from func import plotData, mapFeature, costFunctionReg, gradientReg, scipy_fminunc, plotDecisionBoundary, predict
+from func import tf_gd_reg
 import scipy.optimize as opt
 
 
@@ -54,12 +55,14 @@ def main():
     print("0.3460\n 0.1614\n 0.1948\n 0.2269\n 0.0922")
 
     ## Part 2: Regularization and Accuracies
-    initial_theta = np.zeros((X.shape[1], 1))
+    # initial_theta = np.zeros((X.shape[1], 1))
+    initial_theta = np.random.rand(X.shape[1], 1)
 
     # Set regularization parameter lambda to 1
     lmbd = 1
     options = {"maxiter": 400, "disp": True}
-    theta, cost = scipy_fminunc(costFunctionReg, initial_theta, (X, y, lmbd), options)
+    # theta, cost = scipy_fminunc(costFunctionReg, initial_theta, (X, y, lmbd), options)
+    theta, cost = tf_gd_reg(X, y, initial_theta, lmbd)
 
     # Plot Boundary
     plotDecisionBoundary(theta, X, y)

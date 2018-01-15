@@ -11,7 +11,7 @@ def main():
     print("5x5 Identity Matrix: ")
     warmUpExercise() 
 
-    print("Program paused. Press enter to continue.")
+    # print("Program paused. Press enter to continue.")
     # input() 
 
     ## Part 2: Plotting
@@ -22,7 +22,7 @@ def main():
     m = y.size
     
     plotData(X, y)
-    print("Program paused. Press enter to continue.")
+    # print("Program paused. Press enter to continue.")
     # input()
 
     ## Part 3: Cost and Gradient descent

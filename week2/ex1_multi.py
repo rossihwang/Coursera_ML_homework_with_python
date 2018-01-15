@@ -20,7 +20,7 @@ def main():
     for i, j in zip(X[:10, :], y.reshape(-1, 1)[:10, :]):
         print(" x = [{:.0f} {:.0f}], y = {:.0f}".format(i[0], i[1], j[0]))
 
-    print("Program paused. Press enter to continue. ")
+    # print("Program paused. Press enter to continue. ")
     # input() 
 
     # Scale features and set them to zero mean
@@ -59,7 +59,7 @@ def main():
     price = np.hstack([1, (1650-mu[0])/sigma[0], (3-mu[1])/sigma[1]]) @ theta
 
     print("Predicted price of a 1650 sq-ft, 3 br house (using gradient descent):\n{}".format(price))
-    print("Program paused. Press enter to continue.")
+    # print("Program paused. Press enter to continue.")
     # input()
 
     ## Part 3: Normal Equations

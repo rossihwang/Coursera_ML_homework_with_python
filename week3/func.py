@@ -1,6 +1,7 @@
 import numpy as np 
 import matplotlib.pyplot as plt 
 import scipy.optimize as opt
+import tensorflow as tf
 
 def plotData(X, y):
     plt.figure()
@@ -8,7 +9,7 @@ def plotData(X, y):
     plt.plot(X[y==0, 0], X[y==0, 1], "ko", markerfacecolor='y', markersize=7)
 
 def sigmoid(z):
-    return 1 / (1 + np.exp(-z))
+    return 1 / ((1 + np.exp(-z)) + 0) # Add 0.0001 to avoid divided by zero
 
 # def costFunction(theta, X, y):
 #     theta = theta.reshape(-1, 1)
@@ -24,7 +25,8 @@ def costFunction(theta, X, y):
     y = y.reshape(-1, 1)
     m = y.size
     h = sigmoid(X @ theta)
-    J = np.mean((-y * np.log(h)) - ((1 - y) * (np.log(1 - h))))
+    # print(1-h)
+    J = np.mean(-y * np.log(h) - (1 - y) * np.log(1 - h))
     return J
 
 def gradient(theta, X, y):
@@ -36,11 +38,79 @@ def gradient(theta, X, y):
     return grad
 
 def scipy_fminunc(func, x0, args, options={}):
+    """
+    Simulate fminunc with scipy(BFGS).
+    """
     res = opt.minimize(func, x0, args, method="BFGS")
     # print(res)
     bestX = res.x
     cost = func(bestX, *args)
     return bestX.reshape(x0.shape), cost
+
+def tf_gd(X, y, theta, alpha=0.001, n_epochs=100000):
+    """
+    Logistic regression in tensor flow, It seems Gradient Descent need smaller alpha and larger n_epochs.
+    """
+    theta = theta.reshape(-1, 1)
+    y = y.reshape(-1, 1)
+
+    Xc = tf.constant(X, dtype=tf.float32, name="X")
+    yc = tf.constant(y, dtype=tf.float32, name="y")
+    theta = tf.Variable(theta, dtype=tf.float32, name="theta")
+    z = tf.matmul(Xc, theta)
+    # mse = tf.reduce_mean(tf.to_float((-yc * tf.log(h)) - ((1.0-yc) * tf.log(1.0-h))))
+    mse = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=yc, logits=z, name="mse"))
+    training_op = tf.train.GradientDescentOptimizer(learning_rate=alpha).minimize(mse)
+    
+    init = tf.global_variables_initializer()
+
+    with tf.Session() as sess:
+        sess.run(init)
+
+        for epoch in range(n_epochs):
+            if epoch % 10000 == 0:
+                print("Epoch", epoch, "MSE = ", mse.eval())
+            sess.run(training_op)
+
+        best_theta = theta.eval()
+    cost = costFunction(best_theta, X, y)
+    return best_theta.reshape(theta.shape), cost
+
+def tf_gd_reg(X, y, theta, lmbd, alpha=0.03, n_epochs=800):
+    """
+    Logistic regression with regularization in tensorflow.
+    """
+    theta = theta.reshape(-1, 1)
+    n_theta_row = theta.shape[0]
+    y = y.reshape(-1, 1)
+
+    Xc = tf.constant(X, dtype=tf.float32, name="X")
+    yc = tf.constant(y, dtype=tf.float32, name="y")
+    lmbdc = tf.constant(lmbd, dtype=tf.float32, name="lambda")
+    theta = tf.Variable(theta, dtype=tf.float32, name="theta")
+    z = tf.matmul(Xc, theta)
+    # mse = tf.reduce_mean(tf.to_float((-yc * tf.log(h)) - ((1.0-yc) * tf.log(1.0-h))))
+    mse = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=yc, logits=z, name="mse"))
+    ## Graph for regularization
+    theta1, theta2 = tf.split(theta, [1, n_theta_row-1], 0)
+    sqrt_theta = tf.matmul(tf.transpose(theta2), theta2)
+    reg = lmbdc / 2 * tf.reduce_mean(sqrt_theta)
+    loss = mse + reg 
+    training_op = tf.train.GradientDescentOptimizer(learning_rate=alpha).minimize(loss)
+    
+    init = tf.global_variables_initializer()
+
+    with tf.Session() as sess:
+        sess.run(init)
+
+        for epoch in range(n_epochs):
+            if epoch % 50 == 0:
+                print("Epoch", epoch, "LOSS = ", loss.eval())
+            sess.run(training_op)
+
+        best_theta = theta.eval()
+    cost = costFunction(best_theta, X, y)
+    return best_theta.reshape(theta.shape), cost
 
 def plotDecisionBoundary(theta, X, y):
     # Plot Data
@@ -69,7 +139,7 @@ def plotDecisionBoundary(theta, X, y):
         z = z.T 
         # Plot z = 0
         # Notice you need to specify the range [0, 0]?
-        plt.contour(u, v, z, linewidth=2, levels=[0])
+        plt.contour(u, v, z, levels=[0])
 
 def mapFeature(X1, X2):
     """MAPFEATURE Feature mapping function to polynomial feature 

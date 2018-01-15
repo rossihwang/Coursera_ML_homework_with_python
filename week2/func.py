@@ -29,8 +29,16 @@ def gradientDescent(X, y, theta, alpha, n_epochs):
     y_pred = tf.matmul(Xc, theta, name="predictions")
     error = y_pred - yc
     mse = tf.reduce_mean(tf.square(error), name="mse") # divided by 2 in Matlab version
-    gradients = 1/m * tf.matmul(tf.transpose(Xc), error)
-    training_op = tf.assign(theta, theta - alpha * gradients)
+    # type 1
+    # gradients = 1/m * tf.matmul(tf.transpose(Xc), error)
+    # type 2
+    # gradients = tf.gradients(mse, [theta])[0]
+    # training_op = tf.assign(theta, theta - alpha * gradients)
+    ### type 1 & 2 end ###
+    # type 3
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate=alpha)
+    training_op = optimizer.minimize(mse)
+    ### type 3 end ###
 
     init = tf.global_variables_initializer()
 
