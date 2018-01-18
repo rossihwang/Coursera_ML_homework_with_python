@@ -47,7 +47,7 @@ def scipy_fminunc(func, x0, args, options={}):
     cost = func(bestX, *args)
     return bestX.reshape(x0.shape), cost
 
-def tf_gd(X, y, theta, alpha=0.001, n_epochs=100000):
+def tf_gd(X, y, theta, alpha=0.01, n_epochs=5000):
     """
     Logistic regression in tensor flow, It seems Gradient Descent need smaller alpha and larger n_epochs.
     """
@@ -60,8 +60,9 @@ def tf_gd(X, y, theta, alpha=0.001, n_epochs=100000):
     z = tf.matmul(Xc, theta)
     # mse = tf.reduce_mean(tf.to_float((-yc * tf.log(h)) - ((1.0-yc) * tf.log(1.0-h))))
     mse = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=yc, logits=z, name="mse"))
-    training_op = tf.train.GradientDescentOptimizer(learning_rate=alpha).minimize(mse)
-    
+    # training_op = tf.train.GradientDescentOptimizer(learning_rate=alpha).minimize(mse)
+    training_op = tf.train.AdamOptimizer(learning_rate=alpha).minimize(mse)
+
     init = tf.global_variables_initializer()
 
     with tf.Session() as sess:
@@ -76,7 +77,7 @@ def tf_gd(X, y, theta, alpha=0.001, n_epochs=100000):
     cost = costFunction(best_theta, X, y)
     return best_theta.reshape(theta.shape), cost
 
-def tf_gd_reg(X, y, theta, lmbd, alpha=0.03, n_epochs=800):
+def tf_gd_reg(X, y, theta, lmbd, alpha=0.03, n_epochs=3000):
     """
     Logistic regression with regularization in tensorflow.
     """
@@ -92,12 +93,13 @@ def tf_gd_reg(X, y, theta, lmbd, alpha=0.03, n_epochs=800):
     # mse = tf.reduce_mean(tf.to_float((-yc * tf.log(h)) - ((1.0-yc) * tf.log(1.0-h))))
     mse = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=yc, logits=z, name="mse"))
     ## Graph for regularization
-    theta1, theta2 = tf.split(theta, [1, n_theta_row-1], 0)
-    sqrt_theta = tf.matmul(tf.transpose(theta2), theta2)
-    reg = lmbdc / 2 * tf.reduce_mean(sqrt_theta)
+    _, theta1 = tf.split(theta, [1, n_theta_row-1], 0)
+    inner_prod_theta = tf.matmul(tf.transpose(theta1), theta1)
+    reg = lmbdc / (2 * (n_theta_row-1)) * inner_prod_theta
     loss = mse + reg 
-    training_op = tf.train.GradientDescentOptimizer(learning_rate=alpha).minimize(loss)
-    
+
+    # training_op = tf.train.GradientDescentOptimizer(learning_rate=alpha).minimize(loss)
+    training_op = tf.train.AdamOptimizer(learning_rate=alpha).minimize(loss)
     init = tf.global_variables_initializer()
 
     with tf.Session() as sess:
