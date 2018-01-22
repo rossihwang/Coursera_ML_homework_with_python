@@ -47,7 +47,7 @@ def scipy_fminunc(func, x0, args, options={}):
     cost = func(bestX, *args)
     return bestX.reshape(x0.shape), cost
 
-def tf_gd(X, y, theta, alpha=0.01, n_epochs=5000):
+def tf_minimize(X, y, theta, alpha=0.01, n_epochs=5000):
     """
     Logistic regression in tensor flow, It seems Gradient Descent need smaller alpha and larger n_epochs.
     """
@@ -77,7 +77,7 @@ def tf_gd(X, y, theta, alpha=0.01, n_epochs=5000):
     cost = costFunction(best_theta, X, y)
     return best_theta.reshape(theta.shape), cost
 
-def tf_gd_reg(X, y, theta, lmbd, alpha=0.03, n_epochs=3000):
+def tf_minimize_reg(X, y, theta, lmbd, alpha=0.03, n_epochs=3000):
     """
     Logistic regression with regularization in tensorflow.
     """
