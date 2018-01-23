@@ -41,7 +41,7 @@ def displayData(X, example_width=None):
             curr_ex += 1
         if curr_ex >= m:
             break 
-    plt.figure()
+    # plt.figure()
     plt.imshow(display_array.T, cmap="gray") # Why need transpose?
     plt.axis("off")
 
@@ -63,7 +63,7 @@ def lrCostFunction(theta, X, y, lmbd):
 
     return J, grad
 
-def tf_minimize_reg(X, y, theta, lmbd, alpha=0.03, n_epochs=2000):
+def tf_minimize_reg(X, y, theta, lmbd, alpha=0.03, n_epochs=3000):
     """
     Logistic regression with regularization in tensorflow.
     """
@@ -119,3 +119,14 @@ def predictOneVsAll(all_theta, X):
     X = np.hstack([np.ones((m, 1)), X])
 
     return (np.argmax(sigmoid(X @ all_theta.T), 1) + 1).reshape(-1, 1) # return the max index+1(the label)
+
+def predict(theta1, theta2, X):
+    m = X.shape[0]
+
+    X = np.hstack([np.ones((m, 1)), X]) # Add bias
+    a1 = sigmoid(X @ theta1.T)
+
+    a1 = np.hstack([np.ones((m, 1)), a1])
+    a2 = sigmoid(a1 @ theta2.T)
+
+    return (np.argmax(a2, 1) + 1).reshape(-1, 1)
