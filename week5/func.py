@@ -36,7 +36,7 @@ def displayData(X, example_width=None):
             # print(row_idx(example_height))
             display_array[row_idx(0):row_idx(example_height),
                           col_idx(0):col_idx(example_width)] = \
-                         X[curr_ex, :].reshape(example_height, example_width) / max_val
+                         X[curr_ex, :].reshape(example_height, example_width) / (max_val + 1e-7)
             curr_ex += 1
         if curr_ex >= m:
             break 
@@ -54,14 +54,14 @@ from sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit
 def get_batch_index(data_size, batch_size):
     n_batch = data_size // batch_size
     res = data_size % batch_size
-    
+
     for i in range(n_batch):
         yield np.arange(i*batch_size, (i+1)*batch_size)
     if res != 0:
         yield np.arange((i+1)*batch_size, data_size)
 
-def optimize(nn_params, n_inputs, n_hidden, n_outputs, X_input, y_input, lmbd_input):
-    """
+def fmin_nn(n_inputs, n_hidden, n_outputs, X_input, y_input, lmbd_input):
+    """ Construct layers with fully_connected()
     Substitute two sigmoids with relu and softmax for enhancement respectively. Another 
     reason is a bit difficult to implement multi labels sigmoid in tensorflow.
     """
@@ -74,11 +74,11 @@ def optimize(nn_params, n_inputs, n_hidden, n_outputs, X_input, y_input, lmbd_in
     y_train = y_train.ravel() % 10
     y_test = y_test.ravel() % 10
     y_input = y_input.ravel() % 10
-    lmbd_input = float(lmbd_input)
 
     # X, y are not identify to the inputs
     X = tf.placeholder(tf.float32, shape=(None, n_inputs), name='X')
     y = tf.placeholder(tf.int64, shape=(None), name='y')
+    lmbd = tf.constant(lmbd_input, dtype=tf.float32, name="lambda")
 
     with tf.name_scope("dnn"):
         hidden = fully_connected(X, n_hidden, scope="hidden")
@@ -89,16 +89,16 @@ def optimize(nn_params, n_inputs, n_hidden, n_outputs, X_input, y_input, lmbd_in
         loss = tf.reduce_mean(xentropy, name="loss")
 
     if lmbd_input != 0.0:
-        with tf.name_scope("regularization"):
-            with tf.variable_scope("hidden", reuse=tf.AUTO_REUSE):
-                w1 = tf.get_variable("weights")
-                tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, w1)
-            with tf.variable_scope("outputs", reuse=tf.AUTO_REUSE):
-                w2 = tf.get_variable("weights")
-                tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, w2)
-            reg_var = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-            print(reg_var)
-            loss += (lmbd_input * tf.reduce_sum([tf.reduce_sum(tf.pow(v, 2)) for v in reg_var]))
+        with tf.variable_scope("hidden", reuse=tf.AUTO_REUSE):
+            w1 = tf.get_variable("weights")
+            tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, w1)
+        with tf.variable_scope("outputs", reuse=tf.AUTO_REUSE):
+            w2 = tf.get_variable("weights")
+            tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, w2)
+        reg_var = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+        print(reg_var)
+        print("hello")
+        loss += (lmbd * tf.reduce_sum([tf.reduce_sum(tf.square(v)) for v in reg_var]))
 
     learning_rate = 0.01
     with tf.name_scope("train"):
@@ -145,6 +145,68 @@ def optimize(nn_params, n_inputs, n_hidden, n_outputs, X_input, y_input, lmbd_in
     Theta2 = np.hstack([Theta2_bias.reshape(-1, 1), Theta2_weights])
     nn_params = np.vstack([Theta1.reshape(-1, 1), Theta2.reshape(-1, 1)]) 
 
+    cost, _ = nnCostFunction(nn_params, n_inputs, n_hidden, n_outputs, X_input, y_input, lmbd_input)
+
+    return nn_params, cost
+
+from sklearn.preprocessing import OneHotEncoder
+def fmin_nn1(n_inputs, n_hidden, n_outputs, X_input, y_input, lmbd_input):
+    """Manual constructed layers
+    """
+    y_copy = y_input.copy()
+    y_copy[y_input==10] = 0
+    enc = OneHotEncoder(n_values=10, sparse=False)
+    y_enc = enc.fit_transform(y_copy).reshape(-1, 10)
+    
+    X = tf.placeholder(tf.float32, [None, n_inputs])
+    y = tf.placeholder(tf.float32, [None, n_outputs])
+    lmbd = tf.constant(lmbd_input, dtype=tf.float32, name="lambda")
+
+    with tf.name_scope("layer1"):
+        w1 = tf.Variable(tf.random_normal([n_inputs, n_hidden]), name="w1")
+        b1 = tf.Variable(tf.random_normal([n_hidden]), name="b1")
+        L1 = tf.nn.relu(tf.matmul(X, w1) + b1)
+
+    with tf.name_scope("layer2"):
+        w2 = tf.Variable(tf.random_normal([n_hidden, n_outputs]), name="w2")
+        b2 = tf.Variable(tf.random_normal([n_outputs]), name="b2")
+        hypothesis = tf.matmul(L1, w2) + b2
+
+    with tf.name_scope("loss"):
+        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=hypothesis, labels=y))
+    
+    if lmbd_input != 0.0:
+        with tf.name_scope("regularization"):
+            cost += lmbd * (tf.reduce_mean(tf.square(w1)) +tf.reduce_mean(tf.square(w2))) # L2
+
+    with tf.name_scope("eval"):
+        correct_prediction = tf.equal(tf.argmax(hypothesis, 1), tf.argmax(y, 1))
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+    training_op = tf.train.AdamOptimizer(learning_rate=0.01).minimize(cost)
+    init = tf.global_variables_initializer()
+
+    n_epochs = 200
+    batch_size = 50
+
+    with tf.Session() as sess:
+        sess.run(init)
+        for epoch in range(n_epochs):
+            for idx in get_batch_index(X_input.shape[0], batch_size):
+                X_batch, y_batch = X_input[idx], y_enc[idx]
+                sess.run(training_op, feed_dict={X: X_batch, y: y_batch})
+            if epoch % 50 == 0:
+                accuracy_train = accuracy.eval(feed_dict={X: X_batch, y: y_batch})
+                print(epoch, "Train accuracy:", accuracy_train)
+        bias1 = b1.eval()
+        weights1 = w1.eval()
+        bias2 = b2.eval()
+        weights2 = w2.eval()
+    Theta1 = np.hstack([bias1.reshape(-1, 1), weights1.T])
+    Theta2 = np.hstack([bias2.reshape(-1, 1), weights2.T])
+    nn_params = np.vstack([Theta1.reshape(-1, 1), Theta2.reshape(-1, 1)])
+
+    # This cost is meaningless
     cost, _ = nnCostFunction(nn_params, n_inputs, n_hidden, n_outputs, X_input, y_input, lmbd_input)
 
     return nn_params, cost
@@ -271,7 +333,7 @@ def computeNumericalGradient(J, theta):
     return numgrad
 
 def softmax(z):
-    return np.exp(z) / np.sum(np.exp(z))
+    return np.exp(z) / (np.sum(np.exp(z)) + 1e-7)
 
 def relu(z):
     return np.maximum(z, 0, z)

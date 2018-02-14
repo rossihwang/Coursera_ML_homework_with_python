@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt 
 from mpl_toolkits.mplot3d import Axes3D
-from func import warmUpExercise, plotData, computeCost, gradientDescent
+from func import warmUpExercise, plotData, computeCost, fmin
 
 def main():
     ## Part 1: Basic Function
@@ -49,7 +49,7 @@ def main():
 
     print("\nRunning Gradient Descent ...")
     # run gradient descent
-    theta, _ = gradientDescent(X, y, theta, alpha, iterations)
+    theta, _ = fmin(X, y, theta, alpha, iterations)
 
     # print theta to screen
     print("Theta found by gradient descent:", end='')

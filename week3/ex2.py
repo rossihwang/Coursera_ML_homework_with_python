@@ -2,7 +2,7 @@
 import numpy as np 
 import matplotlib.pyplot as plt 
 from func import plotData, costFunction, scipy_fminunc, plotDecisionBoundary, gradient, sigmoid, predict
-from func import tf_minimize
+from func import tf_fmin
 import scipy.optimize as opt
 
 
@@ -57,7 +57,7 @@ def main():
     options = {"maxiter": 400}
     ## Two implementation here
     # theta, cost = scipy_fminunc(costFunction, initial_theta, (X, y), options)
-    theta, cost = tf_minimize(X, y, initial_theta)
+    theta, cost = tf_fmin(X, y, initial_theta)
 
     # Print theta to screen
     print("Cost at theta found by fminunc: {}".format(cost))

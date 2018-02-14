@@ -2,7 +2,7 @@
 import numpy as np 
 import tensorflow as tf
 import matplotlib.pyplot as plt 
-from func import featureNormalize, gradientDescent, normalEqn
+from func import featureNormalize, fmin, normalEqn
 
 def main():
     ## Part 1: Feature Normalization
@@ -41,7 +41,7 @@ def main():
     # Init Theta and Run Gradient Descent
     theta = np.zeros((3, 1))
     # Reuse gradientDescent 
-    theta, J_history = gradientDescent(X, y, theta, alpha, num_iters)
+    theta, J_history = fmin(X, y, theta, alpha, num_iters)
 
     # Plot the convergence graph
     plt.figure()

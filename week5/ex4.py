@@ -1,14 +1,17 @@
+#!/usr/bin/python3
 import numpy as np 
 from scipy.io import loadmat
 from func import displayData, nnCostFunction, sigmoidGradient, randInitializeWeights,\
-checkNNGradients, optimize, predict
+checkNNGradients, fmin_nn, fmin_nn1, predict
 import matplotlib.pyplot as plt 
 
 def main():
+    
+
     # Setup the parameters you will use for this exercise
-    input_layer_size = 400
+    input_layer_size = 400 # mnist dataset 20x20
     hidden_layer_size = 25
-    num_labels = 10;
+    num_labels = 10
 
     ## Part 1: Loading and Visualizing Data
     print("Loading and Visualizing Data ...")
@@ -63,12 +66,12 @@ def main():
     ## Part 6: Initializing Parameters
     print("\nInitializing Neural Network Parameters ...")
 
-    initial_Theta1 = randInitializeWeights(input_layer_size, hidden_layer_size)
-    initial_Theta2 = randInitializeWeights(hidden_layer_size, num_labels)
+    # initial_Theta1 = randInitializeWeights(input_layer_size, hidden_layer_size)
+    # initial_Theta2 = randInitializeWeights(hidden_layer_size, num_labels)
 
     # Unroll parameters
-    initial_nn_params = np.vstack([initial_Theta1.reshape(-1, 1), initial_Theta2.reshape(-1, 1)])
-
+    # initial_nn_params = np.vstack([initial_Theta1.reshape(-1, 1), initial_Theta2.reshape(-1, 1)])
+    
     ## Part 7: Implement Backpropagation
     print("\nChecking Backpropagation...")
 
@@ -90,8 +93,8 @@ def main():
     ## Part 8: Training NN
     print("\nTraining Neural Network...")
 
-    lmbd = 0 # TODO optimize() can't not work with regularization now, should be 1 here
-    nn_params, cost = optimize(initial_nn_params, input_layer_size, hidden_layer_size, num_labels, X, y, lmbd)
+    lmbd = 1 # TODO optimize() can't not work with regularization now, should be 1 here
+    nn_params, _ = fmin_nn1(input_layer_size, hidden_layer_size, num_labels, X, y, lmbd)
     Theta1 = nn_params[:hidden_layer_size*(input_layer_size+1)].reshape(hidden_layer_size, (input_layer_size+1))
     Theta2 = nn_params[hidden_layer_size*(input_layer_size+1):].reshape(num_labels, (hidden_layer_size+1))
 
@@ -102,7 +105,7 @@ def main():
 
     ## Part 10: Implement Predict
     pred = predict(Theta1, Theta2, X)
-    pred[pred==0] = 10
+    pred[pred==0] = 10 # label 10 is set to 0 in the nn model
 
     print("\nTraining Set Accuracy: {}".format(np.mean(np.double(pred == y.ravel())) * 100))
 

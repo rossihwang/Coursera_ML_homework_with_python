@@ -63,7 +63,7 @@ def lrCostFunction(theta, X, y, lmbd):
 
     return J, grad
 
-def tf_minimize_reg(X, y, theta, lmbd, alpha=0.03, n_epochs=3000):
+def tf_fmin_reg(X, y, theta, lmbd, alpha=0.03, n_epochs=3000):
     """
     Logistic regression with regularization in tensorflow.
     """
@@ -107,7 +107,7 @@ def oneVsAll(X, y, num_labels, lmbd):
 
     for c in np.arange(10):
         print("Class {}:".format(c))
-        all_theta[c] = tf_minimize_reg(X, np.double(y==(c+1)), init_theta, lmbd)
+        all_theta[c] = tf_fmin_reg(X, np.double(y==(c+1)), init_theta, lmbd)
 
     return all_theta
 

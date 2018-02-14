@@ -18,7 +18,9 @@ def computeCost(X, y, theta):
     theta = theta.reshape(-1, 1)
     return np.sum(np.power((X @ theta - y), 2)) / (2*m)
 
-def gradientDescent(X, y, theta, alpha, n_epochs):
+def fmin(X, y, theta, alpha, n_epochs):
+    """
+    """
     y = y.reshape(-1, 1)
     theta = theta.reshape(-1, 1)
     J_history = np.array([])

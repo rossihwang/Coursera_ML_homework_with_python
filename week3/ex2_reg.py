@@ -2,7 +2,7 @@
 import numpy as np 
 import matplotlib.pyplot as plt 
 from func import plotData, mapFeature, costFunctionReg, gradientReg, scipy_fminunc, plotDecisionBoundary, predict
-from func import tf_minimize_reg
+from func import tf_fmin_reg
 import scipy.optimize as opt
 
 
@@ -62,7 +62,7 @@ def main():
     lmbd = 1
     options = {"maxiter": 400, "disp": True}
     # theta, cost = scipy_fminunc(costFunctionReg, initial_theta, (X, y, lmbd), options)
-    theta, cost = tf_minimize_reg(X, y, initial_theta, lmbd)
+    theta, cost = tf_fmin_reg(X, y, initial_theta, lmbd)
 
     # Plot Boundary
     plotDecisionBoundary(theta, X, y)
