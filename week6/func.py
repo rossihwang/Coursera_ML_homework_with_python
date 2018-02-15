@@ -7,7 +7,6 @@ def linearRegCostFunction(X, y, theta, lmbd):
 
     grad = np.zeros_like(theta)
     h = X @ theta
-    print(X.shape, y.shape, h.shape)
     J = np.mean(np.square(h - y)) / 2 + (np.mean(np.square(theta[1:])) * lmbd) / 2
     grad = X.T @ (h - y) / m
     grad[1:] = grad[1:] + theta[1:] * lmbd / m
@@ -71,8 +70,6 @@ def plotFit(min_x, max_x, mu, sigma, theta, p):
     X_poly = polyFeatures(x, p)
     X_poly = (X_poly - mu) / sigma 
 
-    print(X_poly.shape, theta.shape)
-    print("hello, world")
     X_poly = np.hstack([np.ones((x.shape[0], 1)), X_poly])
     plt.plot(x, X_poly @ theta, "--", linewidth=2.0)
 
